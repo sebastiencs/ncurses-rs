@@ -12,35 +12,95 @@ use FromCStr;
 
 use libc::c_int;
 
+use constants::KEY_MAX;
+
+pub const REQ_NEXT_PAGE: c_int = KEY_MAX + 1;
+pub const REQ_PREV_PAGE: c_int = KEY_MAX + 2;
+pub const REQ_FIRST_PAGE: c_int = KEY_MAX + 3;
+pub const REQ_LAST_PAGE: c_int = KEY_MAX + 4;
+pub const REQ_NEXT_FIELD: c_int = KEY_MAX + 5;
+pub const REQ_PREV_FIELD: c_int = KEY_MAX + 6;
+pub const REQ_FIRST_FIELD: c_int = KEY_MAX + 7;
+pub const REQ_LAST_FIELD: c_int = KEY_MAX + 8;
+pub const REQ_SNEXT_FIELD: c_int = KEY_MAX + 9;
+pub const REQ_SPREV_FIELD: c_int = KEY_MAX + 10;
+pub const REQ_SFIRST_FIELD: c_int = KEY_MAX + 11;
+pub const REQ_SLAST_FIELD: c_int = KEY_MAX + 12;
+pub const REQ_LEFT_FIELD: c_int = KEY_MAX + 13;
+pub const REQ_RIGHT_FIELD: c_int = KEY_MAX + 14;
+pub const REQ_UP_FIELD: c_int = KEY_MAX + 15;
+pub const REQ_DOWN_FIELD: c_int = KEY_MAX + 16;
+pub const REQ_NEXT_CHAR: c_int = KEY_MAX + 17;
+pub const REQ_PREV_CHAR: c_int = KEY_MAX + 18;
+pub const REQ_NEXT_LINE: c_int = KEY_MAX + 19;
+pub const REQ_PREV_LINE: c_int = KEY_MAX + 20;
+pub const REQ_NEXT_WORD: c_int = KEY_MAX + 21;
+pub const REQ_PREV_WORD: c_int = KEY_MAX + 22;
+pub const REQ_BEG_FIELD: c_int = KEY_MAX + 23;
+pub const REQ_END_FIELD: c_int = KEY_MAX + 24;
+pub const REQ_BEG_LINE: c_int = KEY_MAX + 25;
+pub const REQ_END_LINE: c_int = KEY_MAX + 26;
+pub const REQ_LEFT_CHAR: c_int = KEY_MAX + 27;
+pub const REQ_RIGHT_CHAR: c_int = KEY_MAX + 28;
+pub const REQ_UP_CHAR: c_int = KEY_MAX + 29;
+pub const REQ_DOWN_CHAR: c_int = KEY_MAX + 30;
+pub const REQ_NEW_LINE: c_int = KEY_MAX + 31;
+pub const REQ_INS_CHAR: c_int = KEY_MAX + 32;
+pub const REQ_INS_LINE: c_int = KEY_MAX + 33;
+pub const REQ_DEL_CHAR: c_int = KEY_MAX + 34;
+pub const REQ_DEL_PREV: c_int = KEY_MAX + 35;
+pub const REQ_DEL_LINE: c_int = KEY_MAX + 36;
+pub const REQ_DEL_WORD: c_int = KEY_MAX + 37;
+pub const REQ_CLR_EOL: c_int = KEY_MAX + 38;
+pub const REQ_CLR_EOF: c_int = KEY_MAX + 39;
+pub const REQ_CLR_FIELD: c_int = KEY_MAX + 40;
+pub const REQ_OVL_MODE: c_int = KEY_MAX + 41;
+pub const REQ_INS_MODE: c_int = KEY_MAX + 42;
+pub const REQ_SCR_FLINE: c_int = KEY_MAX + 43;
+pub const REQ_SCR_BLINE: c_int = KEY_MAX + 44;
+pub const REQ_SCR_FPAGE: c_int = KEY_MAX + 45;
+pub const REQ_SCR_BPAGE: c_int = KEY_MAX + 46;
+pub const REQ_SCR_FHPAGE: c_int = KEY_MAX + 47;
+pub const REQ_SCR_BHPAGE: c_int = KEY_MAX + 48;
+pub const REQ_SCR_FCHAR: c_int = KEY_MAX + 49;
+pub const REQ_SCR_BCHAR: c_int = KEY_MAX + 50;
+pub const REQ_SCR_HFLINE: c_int = KEY_MAX + 51;
+pub const REQ_SCR_HBLINE: c_int = KEY_MAX + 52;
+pub const REQ_SCR_HFHALF: c_int = KEY_MAX + 53;
+pub const REQ_SCR_HBHALF: c_int = KEY_MAX + 54;
+pub const REQ_VALIDATION: c_int = KEY_MAX + 55;
+pub const REQ_NEXT_CHOICE: c_int = KEY_MAX + 56;
+pub const REQ_PREV_CHOICE: c_int = KEY_MAX + 57;
+
+
 pub type FORM = ll::FORM;
 pub type FIELD = ll::FIELD;
 pub type FIELDTYPE = ll::FIELDTYPE;
 pub type FieldOptions = ll::FieldOptions;
 
+pub const O_VISIBLE: FieldOptions = 0x0001;
+pub const O_ACTIVE: FieldOptions = 0x0002;
+pub const O_PUBLIC: FieldOptions = 0x0004;
+pub const O_EDIT: FieldOptions = 0x0008;
+pub const O_WRAP: FieldOptions = 0x0010;
+pub const O_BLANK: FieldOptions = 0x0020;
+pub const O_AUTOSKIP: FieldOptions = 0x0040;
+pub const O_NULLOK: FieldOptions = 0x0080;
+pub const O_PASSOK: FieldOptions = 0x0100;
+pub const O_STATIC: FieldOptions = 0x0200;
+pub const O_DYNAMIC_JUSTIFY: FieldOptions = 0x0400;
+pub const O_NO_LEFT_STRIP: FieldOptions =  0x0800;
+
 #[derive(Debug, Copy, Clone)]
 pub enum Justification {
-    Right,
-    Center,
-    Left,
-    Disable
+    Disable = 0,
+    Left = 1,
+    Center = 2,
+    Right = 3,
 }
 
-trait ConvertJustify {
-    fn to_int(_:Justification) -> c_int;
-    fn from_int(_:c_int) -> Justification;
-}
-
-impl ConvertJustify for Justification {
-    fn to_int(j: Justification) -> c_int {
-        match j {
-            Justification::Disable => 0,
-            Justification::Left => 1,
-            Justification::Center => 2,
-            Justification::Right => 3
-        }
-    }
-
-    fn from_int(int: c_int) -> Justification {
+impl From<c_int> for Justification {
+    fn from(int: c_int) -> Self {
         match int {
             1 => Justification::Left,
             2 => Justification::Center,
@@ -49,6 +109,32 @@ impl ConvertJustify for Justification {
         }
     }
 }
+
+// trait ConvertJustify {
+//     fn to_int(_:Justification) -> c_int;
+//     fn from_int(_:c_int) -> Justification;
+// }
+
+// impl ConvertJustify for Justification {
+//     fn to_int(j: Justification) -> c_int {
+//         j as c_int
+//         // match j {
+//         //     Justification::Disable => 0,
+//         //     Justification::Left => 1,
+//         //     Justification::Center => 2,
+//         //     Justification::Right => 3
+//         // }
+//     }
+
+//     fn from_int(int: c_int) -> Justification {
+//         match int {
+//             1 => Justification::Left,
+//             2 => Justification::Center,
+//             3 => Justification::Right,
+//             _ => Justification::Disable,
+//         }
+//     }
+// }
 
 #[derive(Debug, Copy, Clone)]
 pub enum FormCode {
@@ -232,21 +318,27 @@ pub fn field_pad(field: FIELD) -> i32
 
 
 pub fn set_field_just(field: FIELD, value: Justification) -> FormResult
-{ FormCode::result( unsafe { ll::set_field_just(field, Justification::to_int(value)) } ) }
+{ FormCode::result( unsafe { ll::set_field_just(field, value as c_int) } ) }
+//{ FormCode::result( unsafe { ll::set_field_just(field, Justification::to_int(value)) } ) }
 
 pub fn field_just(field: FIELD) -> Justification
-{ Justification::from_int( unsafe { ll::field_just(field) } ) }
+{ unsafe { Justification::from(ll::field_just(field)) } }
 
 
 pub fn set_field_opts(field: FIELD, options: FieldOptions) -> FormResult
-{ FormCode::result( unsafe { ll:: } ) }
+{ FormCode::result( unsafe { ll::set_field_opts(field, options) } ) }
 
-// pub fn field_opts_on(_:FIELD, _:FieldOptions) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn field_opts_off(_:FIELD, _:FieldOptions) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn field_opts(_:FIELD) -> FieldOptions { unsafe { ll:: } }
+pub fn field_opts_on(field: FIELD, options: FieldOptions) -> FormResult
+{ FormCode::result( unsafe { ll::field_opts_on(field, options) } ) }
+
+pub fn field_opts_off(field: FIELD, options: FieldOptions) -> FormResult
+{ FormCode::result( unsafe { ll::field_opts_off(field, options) } ) }
+
+pub fn field_opts(field: FIELD) -> FieldOptions
+{ unsafe { ll::field_opts(field) } }
 
 
-// pub fn form_driver(_:FORM, _:c_int) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn form_driver(form: FORM, _:c_int) -> FormResult { FormCode::result( unsafe { ll:: } ) }
 // // pub fn form_driver_w(_:FORM, _:c_int, wchar_t wch) -> FormResult { FormCode::result( unsafe { ll:: } ) } TODO wchar ?
 
 
