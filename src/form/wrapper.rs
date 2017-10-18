@@ -129,59 +129,51 @@ pub enum FormCode {
     Unknown = -15
 }
 
-trait Form_Result {
-    fn from_code(_: i32) -> FormCode;
-    fn result(_: i32) -> FormResult;
-    // fn result_ptr<T>(_: T) -> Option<T> where T: PartialEq;
-}
-
-impl Form_Result for FormCode {
-    fn from_code(code: i32) -> FormCode {
-        match code {
-            -1 => FormCode::SystemError,
-            -2 => FormCode::BadArgument,
-            -3 => FormCode::Posted,
-            -4 => FormCode::Connected,
-            -5 => FormCode::BadState,
-            -6 => FormCode::NoRoom,
-            -7 => FormCode::NotPosted,
-            -8 => FormCode::UnknownCommand,
-            -9 => FormCode::NoMatch,
-            -10 => FormCode::NotSelectable,
-            -11 => FormCode::NotConnected,
-            -12 => FormCode::RequestDenied,
-            -13 => FormCode::InvalidField,
-            -14 => FormCode::Current,
-            _ => FormCode::Unknown,
-        }
-    }
-
-    fn result(code: i32) -> FormResult {
-        match code {
-            x if x >= 0 => Ok(x),
-            _ => Err(FormCode::from_code(code))
-        }
-    }
-
-    // fn result_ptr<T>(ptr: T) -> Option<T> where T: PartialEq {
-    //     if ptr == ptr::null::<T>() { Some(ptr) }
-    //     else { None }
-    // }
-}
-
 pub type FormResult = Result<i32, FormCode>;
 
+trait FromForm {
+    fn from_value(_:c_int) -> Self;
+}
+
+
+impl FromForm for FormResult {
+    fn from_value(x: c_int) -> FormResult {
+        if x >= 0 {
+            Ok(x)
+        } else {
+            Err(match x {
+                -1 => FormCode::SystemError,
+                -2 => FormCode::BadArgument,
+                -3 => FormCode::Posted,
+                -4 => FormCode::Connected,
+                -5 => FormCode::BadState,
+                -6 => FormCode::NoRoom,
+                -7 => FormCode::NotPosted,
+                -8 => FormCode::UnknownCommand,
+                -9 => FormCode::NoMatch,
+                -10 => FormCode::NotSelectable,
+                -11 => FormCode::NotConnected,
+                -12 => FormCode::RequestDenied,
+                -13 => FormCode::InvalidField,
+                -14 => FormCode::Current,
+                _ => FormCode::Unknown,
+            })
+        }
+    }
+}
+
+
 pub fn set_current_field(form: FORM, field: FIELD) -> FormResult
-{ FormCode::result( unsafe { ll::set_current_field(form, field) } ) }
+{ FormResult::from_value( unsafe { ll::set_current_field(form, field) } ) }
 
 pub fn current_field(form: FORM) -> Option<FIELD>
 { unsafe { ll::current_field(form).as_mut().map(|x| {x as FIELD}) } }
 
 pub fn unfocus_current_field(form: FORM) -> FormResult
-{ FormCode::result( unsafe { ll::unfocus_current_field(form) } ) }
+{ FormResult::from_value( unsafe { ll::unfocus_current_field(form) } ) }
 
 pub fn set_form_page(form: FORM, n: i32) -> FormResult
-{ FormCode::result( unsafe { ll::set_form_page(form, n) } ) }
+{ FormResult::from_value( unsafe { ll::set_form_page(form, n) } ) }
 
 pub fn form_page(form: FORM) -> i32
 { unsafe { ll::form_page(form) } }
@@ -207,18 +199,18 @@ pub fn link_field(field: FIELD, toprow: i32, leftcol: i32) -> Option<FIELD>
 { unsafe { ll::link_field(field, toprow, leftcol).as_mut().map(|x| {x as FIELD}) } }
 
 pub fn free_field(field: FIELD) -> FormResult
-{ FormCode::result( unsafe { ll::free_field(field) } ) }
+{ FormResult::from_value( unsafe { ll::free_field(field) } ) }
 
 
 pub fn field_info(field: FIELD, rows: &mut i32, cols: &mut i32,
                   frow: &mut i32, fcol: &mut i32, nrow: &mut i32, nbuf:&mut i32) -> FormResult
-{ FormCode::result( unsafe { ll::field_info(field, rows as *mut c_int,
+{ FormResult::from_value( unsafe { ll::field_info(field, rows as *mut c_int,
                                             cols as *mut c_int, frow as *mut c_int,
                                             fcol as *mut c_int, nrow as *mut c_int,
                                             nbuf as *mut c_int) } ) }
 
 pub fn dynamic_field_info(field: FIELD, rows: &mut i32, cols: &mut i32, max: &mut i32) -> FormResult
-{ FormCode::result( unsafe { ll::dynamic_field_info(field, rows as *mut c_int, cols as *mut c_int, max as *mut c_int) } ) }
+{ FormResult::from_value( unsafe { ll::dynamic_field_info(field, rows as *mut c_int, cols as *mut c_int, max as *mut c_int) } ) }
 
 
 // // pub fn int set_field_type(FIELD *field, FIELDTYPE *type, ...) { unsafe { ll:: } } TODO
@@ -227,26 +219,26 @@ pub fn dynamic_field_info(field: FIELD, rows: &mut i32, cols: &mut i32, max: &mu
 
 
 pub fn set_field_buffer(field: FIELD, buf: i32, value: &str) -> FormResult
-{ FormCode::result( unsafe { ll::set_field_buffer(field, buf, value.to_c_str().as_ptr()) } ) }
+{ FormResult::from_value( unsafe { ll::set_field_buffer(field, buf, value.to_c_str().as_ptr()) } ) }
 
 pub fn field_buffer(field: FIELD, buffer: i32) -> String
 { unsafe { FromCStr::from_c_str(ll::field_buffer(field, buffer)) } }
 
 pub fn set_field_status(field: FIELD, status: bool) -> FormResult
-{ FormCode::result( unsafe { ll::set_field_status(field, if status { 1 } else { 0 }) } ) }
+{ FormResult::from_value( unsafe { ll::set_field_status(field, if status { 1 } else { 0 }) } ) }
 
 pub fn field_status(field: FIELD) -> bool
 { unsafe { if ll::field_status(field) == 1 { true } else { false } } }
 
 pub fn set_max_field(field: FIELD, max: i32) -> FormResult
-{ FormCode::result( unsafe { ll::set_max_field(field, max) } ) }
+{ FormResult::from_value( unsafe { ll::set_max_field(field, max) } ) }
 
 
 pub fn set_form_fields(form: FORM, fields: &mut Vec<FIELD>) -> FormResult {
     fields.push(ptr::null_mut());
     let res = unsafe { ll::set_form_fields(form, fields.as_mut_ptr()) };
     fields.pop();
-    FormCode::result(res)
+    FormResult::from_value(res)
 }
 
 pub fn form_fields(form: FORM) -> Vec<FIELD>
@@ -256,23 +248,23 @@ pub fn field_count(form: FORM) -> i32
 { unsafe { ll::field_count(form) } }
 
 pub fn move_field(field: FIELD, frow: i32, fcol: i32) -> FormResult
-{ FormCode::result( unsafe { ll::move_field(field, frow, fcol) } ) }
+{ FormResult::from_value( unsafe { ll::move_field(field, frow, fcol) } ) }
 
 
 pub fn set_field_fore(field: FIELD, attr: chtype) -> FormResult
-{ FormCode::result( unsafe { ll::set_field_fore(field, attr) } ) }
+{ FormResult::from_value( unsafe { ll::set_field_fore(field, attr) } ) }
 
 pub fn field_fore(field: FIELD) -> chtype
 { unsafe { ll::field_fore(field) } }
 
 pub fn set_field_back(field: FIELD, attr: chtype) -> FormResult
-{ FormCode::result( unsafe { ll::set_field_back(field, attr) } ) }
+{ FormResult::from_value( unsafe { ll::set_field_back(field, attr) } ) }
 
 pub fn field_back(field: FIELD) -> chtype
 { unsafe { ll::field_back(field) } }
 
 pub fn set_field_pad(field: FIELD, pad: i32) -> FormResult
-{ FormCode::result( unsafe { ll::set_field_pad(field, pad) } ) }
+{ FormResult::from_value( unsafe { ll::set_field_pad(field, pad) } ) }
 
 pub fn field_pad(field: FIELD) -> i32
 { unsafe { ll::field_pad(field) } }
@@ -290,21 +282,21 @@ pub fn field_pad(field: FIELD) -> i32
 
 
 pub fn set_field_just(field: FIELD, value: Justification) -> FormResult
-{ FormCode::result( unsafe { ll::set_field_just(field, value as c_int) } ) }
-//{ FormCode::result( unsafe { ll::set_field_just(field, Justification::to_int(value)) } ) }
+{ FormResult::from_value( unsafe { ll::set_field_just(field, value as c_int) } ) }
+//{ FormResult::from_value( unsafe { ll::set_field_just(field, Justification::to_int(value)) } ) }
 
 pub fn field_just(field: FIELD) -> Justification
 { unsafe { Justification::from(ll::field_just(field)) } }
 
 
 pub fn set_field_opts(field: FIELD, options: FieldOptions) -> FormResult
-{ FormCode::result( unsafe { ll::set_field_opts(field, options) } ) }
+{ FormResult::from_value( unsafe { ll::set_field_opts(field, options) } ) }
 
 pub fn field_opts_on(field: FIELD, options: FieldOptions) -> FormResult
-{ FormCode::result( unsafe { ll::field_opts_on(field, options) } ) }
+{ FormResult::from_value( unsafe { ll::field_opts_on(field, options) } ) }
 
 pub fn field_opts_off(field: FIELD, options: FieldOptions) -> FormResult
-{ FormCode::result( unsafe { ll::field_opts_off(field, options) } ) }
+{ FormResult::from_value( unsafe { ll::field_opts_off(field, options) } ) }
 
 pub fn field_opts(field: FIELD) -> FieldOptions
 { unsafe { ll::field_opts(field) } }
@@ -312,19 +304,19 @@ pub fn field_opts(field: FIELD) -> FieldOptions
 
 // TODO: improve the parameter type
 pub fn form_driver(form: FORM, c: i32) -> FormResult
-{ FormCode::result( unsafe { ll::form_driver(form, c) } ) }
+{ FormResult::from_value( unsafe { ll::form_driver(form, c) } ) }
 
-// // pub fn form_driver_w(_:FORM, _:c_int, wchar_t wch) -> FormResult { FormCode::result( unsafe { ll:: } ) } TODO wchar ?
+// // pub fn form_driver_w(_:FORM, _:c_int, wchar_t wch) -> FormResult { FormResult::from_value( unsafe { ll:: } ) } TODO wchar ?
 
 
 pub fn set_form_opts(form: FORM, options: FieldOptions) -> FormResult
-{ FormCode::result( unsafe { ll::set_form_opts(form, options) } ) }
+{ FormResult::from_value( unsafe { ll::set_form_opts(form, options) } ) }
 
 pub fn form_opts_on(form: FORM, options: FieldOptions) -> FormResult
-{ FormCode::result( unsafe { ll::form_opts_on(form, options) } ) }
+{ FormResult::from_value( unsafe { ll::form_opts_on(form, options) } ) }
 
 pub fn form_opts_off(form: FORM, options: FieldOptions) -> FormResult
-{ FormCode::result( unsafe { ll::form_opts_off(form, options) } ) }
+{ FormResult::from_value( unsafe { ll::form_opts_off(form, options) } ) }
 
 pub fn form_opts(form: FORM) -> FieldOptions
 { unsafe { ll::form_opts(form) } }
@@ -333,23 +325,23 @@ pub fn form_request_name(request: i32) -> String
 { unsafe { FromCStr::from_c_str(ll::form_request_name(request))} }
 
 pub fn form_request_by_name(name: &str) -> FormResult
-{ FormCode::result( unsafe { ll::form_request_by_name(name.to_c_str().as_ptr()) } ) }
+{ FormResult::from_value( unsafe { ll::form_request_by_name(name.to_c_str().as_ptr()) } ) }
 
 
 pub fn set_form_win(form: FORM, window: WINDOW) -> FormResult
-{ FormCode::result( unsafe { ll::set_form_win(form, window) } ) }
+{ FormResult::from_value( unsafe { ll::set_form_win(form, window) } ) }
 
 pub fn form_win(form: FORM) -> Option<WINDOW>
 { unsafe { ll::form_win(form).as_mut().map(|x| x as WINDOW) } }
 
 pub fn set_form_sub(form: FORM, window: WINDOW) -> FormResult
-{ FormCode::result( unsafe { ll::set_form_sub(form, window) } ) }
+{ FormResult::from_value( unsafe { ll::set_form_sub(form, window) } ) }
 
 pub fn form_sub(form: FORM) -> Option<WINDOW>
 { unsafe { ll::form_sub(form).as_mut().map(|x| x as WINDOW) } }
 
 pub fn scale_form(form: FORM, rows: &mut i32, cols: &mut i32) -> FormResult
-{ FormCode::result( unsafe { ll::scale_form(form, rows as *mut c_int, cols as *mut c_int) } ) }
+{ FormResult::from_value( unsafe { ll::scale_form(form, rows as *mut c_int, cols as *mut c_int) } ) }
 
 
 // // TODO
@@ -374,22 +366,22 @@ pub fn new_form(fields: &mut Vec<FIELD>) -> Option<FORM> {
 }
 
 pub fn free_form(form: FORM) -> FormResult
-{ FormCode::result( unsafe { ll::free_form(form) } ) }
+{ FormResult::from_value( unsafe { ll::free_form(form) } ) }
 
 
 pub fn set_new_page(field: FIELD, new_page_flag: bool) -> FormResult
-{ FormCode::result( unsafe { ll::set_new_page(field, if new_page_flag { 1 } else { 0 }) } ) }
+{ FormResult::from_value( unsafe { ll::set_new_page(field, if new_page_flag { 1 } else { 0 }) } ) }
 
 pub fn new_page(field: FIELD) -> bool
 { unsafe { if ll::new_page(field) == 1 { true } else { false } } }
 
 
 pub fn pos_form_cursor(form: FORM) -> FormResult
-{ FormCode::result( unsafe { ll::pos_form_cursor(form) } ) }
+{ FormResult::from_value( unsafe { ll::pos_form_cursor(form) } ) }
 
 
 pub fn post_form(form: FORM) -> FormResult
-{ FormCode::result( unsafe { ll::post_form(form) } ) }
+{ FormResult::from_value( unsafe { ll::post_form(form) } ) }
 
 pub fn unpost_form(form: FORM) -> FormResult
-{ FormCode::result( unsafe { ll::unpost_form(form) } ) }
+{ FormResult::from_value( unsafe { ll::unpost_form(form) } ) }
