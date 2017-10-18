@@ -2,10 +2,13 @@
 #![allow(unused_imports)]
 
 use form::ll;
-use ll::WINDOW;
+use ll::{WINDOW, chtype};
 use constants::TRUE;
 use std::ptr;
+use std::slice;
 use std::cmp::PartialEq;
+use ToCStr;
+use FromCStr;
 
 use libc::c_int;
 
@@ -14,7 +17,40 @@ pub type FIELD = ll::FIELD;
 pub type FIELDTYPE = ll::FIELDTYPE;
 pub type FieldOptions = ll::FieldOptions;
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
+pub enum Justification {
+    Right,
+    Center,
+    Left,
+    Disable
+}
+
+trait ConvertJustify {
+    fn to_int(_:Justification) -> c_int;
+    fn from_int(_:c_int) -> Justification;
+}
+
+impl ConvertJustify for Justification {
+    fn to_int(j: Justification) -> c_int {
+        match j {
+            Justification::Disable => 0,
+            Justification::Left => 1,
+            Justification::Center => 2,
+            Justification::Right => 3
+        }
+    }
+
+    fn from_int(int: c_int) -> Justification {
+        match int {
+            1 => Justification::Left,
+            2 => Justification::Center,
+            3 => Justification::Right,
+            _ => Justification::Disable,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
 pub enum FormCode {
     Ok = 0,
     SystemError = -1,
@@ -135,24 +171,53 @@ pub fn dynamic_field_info(field: FIELD, rows: &mut i32, cols: &mut i32, max: &mu
 pub fn set_field_buffer(field: FIELD, buf: i32, value: &str) -> FormResult
 { FormCode::result( unsafe { ll::set_field_buffer(field, buf, value.to_c_str().as_ptr()) } ) }
 
-// pub fn field_buffer(_:FIELD, _:c_int) -> *const c_char { unsafe { ll:: } }
-// pub fn set_field_status(_:FIELD, _:c_bool) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn field_status(_:FIELD) -> c_bool { unsafe { ll:: } }
-// pub fn set_max_field(_:FIELD, _:c_int) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn field_buffer(field: FIELD, buffer: i32) -> String
+{ unsafe { FromCStr::from_c_str(ll::field_buffer(field, buffer)) } }
+
+pub fn set_field_status(field: FIELD, status: bool) -> FormResult
+{ FormCode::result( unsafe { ll::set_field_status(field, if status { 1 } else { 0 }) } ) }
+
+pub fn field_status(field: FIELD) -> bool
+{ unsafe { if ll::field_status(field) == 1 { true } else { false } } }
+
+pub fn set_max_field(field: FIELD, max: i32) -> FormResult
+{ FormCode::result( unsafe { ll::set_max_field(field, max) } ) }
 
 
-// pub fn set_form_fields(_:FORM, _:*mut FIELD) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn form_fields(_:FORM) -> *mut FIELD { unsafe { ll:: } }
-// pub fn field_count(_:FORM) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn move_field(_:FIELD, _:c_int, _:c_int) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn set_form_fields(form: FORM, fields: &mut Vec<FIELD>) -> FormResult {
+    fields.push(ptr::null_mut());
+    let res = unsafe { ll::set_form_fields(form, fields.as_mut_ptr()) };
+    fields.pop();
+    FormCode::result(res)
+}
+
+pub fn form_fields(form: FORM) -> Vec<FIELD>
+{ unsafe { slice::from_raw_parts(ll::form_fields(form), ll::field_count(form) as usize).to_vec() } }
+
+pub fn field_count(form: FORM) -> i32
+{ unsafe { ll::field_count(form) } }
+
+pub fn move_field(field: FIELD, frow: i32, fcol: i32) -> FormResult
+{ FormCode::result( unsafe { ll::move_field(field, frow, fcol) } ) }
 
 
-// pub fn set_field_fore(_:FIELD, _:chtype) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn field_fore(_:FIELD) -> chtype { unsafe { ll:: } }
-// pub fn set_field_back(_:FIELD, _:chtype) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn field_back(_:FIELD) -> chtype { unsafe { ll:: } }
-// pub fn set_field_pad(_:FIELD, _:c_int) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn field_pad(_:FIELD) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn set_field_fore(field: FIELD, attr: chtype) -> FormResult
+{ FormCode::result( unsafe { ll::set_field_fore(field, attr) } ) }
+
+pub fn field_fore(field: FIELD) -> chtype
+{ unsafe { ll::field_fore(field) } }
+
+pub fn set_field_back(field: FIELD, attr: chtype) -> FormResult
+{ FormCode::result( unsafe { ll::set_field_back(field, attr) } ) }
+
+pub fn field_back(field: FIELD) -> chtype
+{ unsafe { ll::field_back(field) } }
+
+pub fn set_field_pad(field: FIELD, pad: i32) -> FormResult
+{ FormCode::result( unsafe { ll::set_field_pad(field, pad) } ) }
+
+pub fn field_pad(field: FIELD) -> i32
+{ unsafe { ll::field_pad(field) } }
 
 
 // // TODO
@@ -166,11 +231,16 @@ pub fn set_field_buffer(field: FIELD, buf: i32, value: &str) -> FormResult
 // // pub fn Form_Hook form_term(const FORM *form) { unsafe { ll:: } }
 
 
-// pub fn set_field_just(_:FIELD, _:c_int) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn field_just(_:FIELD) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn set_field_just(field: FIELD, value: Justification) -> FormResult
+{ FormCode::result( unsafe { ll::set_field_just(field, Justification::to_int(value)) } ) }
+
+pub fn field_just(field: FIELD) -> Justification
+{ Justification::from_int( unsafe { ll::field_just(field) } ) }
 
 
-// pub fn set_field_opts(_:FIELD, _:FieldOptions) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn set_field_opts(field: FIELD, options: FieldOptions) -> FormResult
+{ FormCode::result( unsafe { ll:: } ) }
+
 // pub fn field_opts_on(_:FIELD, _:FieldOptions) -> FormResult { FormCode::result( unsafe { ll:: } ) }
 // pub fn field_opts_off(_:FIELD, _:FieldOptions) -> FormResult { FormCode::result( unsafe { ll:: } ) }
 // pub fn field_opts(_:FIELD) -> FieldOptions { unsafe { ll:: } }
