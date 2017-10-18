@@ -6,7 +6,6 @@ use ll::{WINDOW, chtype};
 use constants::TRUE;
 use std::ptr;
 use std::slice;
-use std::cmp::PartialEq;
 use ToCStr;
 use FromCStr;
 
@@ -110,32 +109,6 @@ impl From<c_int> for Justification {
     }
 }
 
-// trait ConvertJustify {
-//     fn to_int(_:Justification) -> c_int;
-//     fn from_int(_:c_int) -> Justification;
-// }
-
-// impl ConvertJustify for Justification {
-//     fn to_int(j: Justification) -> c_int {
-//         j as c_int
-//         // match j {
-//         //     Justification::Disable => 0,
-//         //     Justification::Left => 1,
-//         //     Justification::Center => 2,
-//         //     Justification::Right => 3
-//         // }
-//     }
-
-//     fn from_int(int: c_int) -> Justification {
-//         match int {
-//             1 => Justification::Left,
-//             2 => Justification::Center,
-//             3 => Justification::Right,
-//             _ => Justification::Disable,
-//         }
-//     }
-// }
-
 #[derive(Debug, Copy, Clone)]
 pub enum FormCode {
     Ok = 0,
@@ -165,7 +138,6 @@ trait Form_Result {
 impl Form_Result for FormCode {
     fn from_code(code: i32) -> FormCode {
         match code {
-            0 => FormCode::Ok,
             -1 => FormCode::SystemError,
             -2 => FormCode::BadArgument,
             -3 => FormCode::Posted,
@@ -186,7 +158,7 @@ impl Form_Result for FormCode {
 
     fn result(code: i32) -> FormResult {
         match code {
-            0 => Ok(()),
+            x if x >= 0 => Ok(x),
             _ => Err(FormCode::from_code(code))
         }
     }
@@ -197,7 +169,7 @@ impl Form_Result for FormCode {
     // }
 }
 
-pub type FormResult = Result<(), FormCode>;
+pub type FormResult = Result<i32, FormCode>;
 
 pub fn set_current_field(form: FORM, field: FIELD) -> FormResult
 { FormCode::result( unsafe { ll::set_current_field(form, field) } ) }
@@ -338,31 +310,46 @@ pub fn field_opts(field: FIELD) -> FieldOptions
 { unsafe { ll::field_opts(field) } }
 
 
-pub fn form_driver(form: FORM, _:c_int) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+// TODO: improve the parameter type
+pub fn form_driver(form: FORM, c: i32) -> FormResult
+{ FormCode::result( unsafe { ll::form_driver(form, c) } ) }
+
 // // pub fn form_driver_w(_:FORM, _:c_int, wchar_t wch) -> FormResult { FormCode::result( unsafe { ll:: } ) } TODO wchar ?
 
 
-// pub fn set_form_opts(_:FORM, _:FieldOptions) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn form_opts_on(_:FORM, _:FieldOptions) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn form_opts_off(_:FORM, _:FieldOptions) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn form_opts(_:FORM) -> FieldOptions { unsafe { ll:: } }
+pub fn set_form_opts(form: FORM, options: FieldOptions) -> FormResult
+{ FormCode::result( unsafe { ll::set_form_opts(form, options) } ) }
+
+pub fn form_opts_on(form: FORM, options: FieldOptions) -> FormResult
+{ FormCode::result( unsafe { ll::form_opts_on(form, options) } ) }
+
+pub fn form_opts_off(form: FORM, options: FieldOptions) -> FormResult
+{ FormCode::result( unsafe { ll::form_opts_off(form, options) } ) }
+
+pub fn form_opts(form: FORM) -> FieldOptions
+{ unsafe { ll::form_opts(form) } }
+
+pub fn form_request_name(request: i32) -> String
+{ unsafe { FromCStr::from_c_str(ll::form_request_name(request))} }
+
+pub fn form_request_by_name(name: &str) -> FormResult
+{ FormCode::result( unsafe { ll::form_request_by_name(name.to_c_str().as_ptr()) } ) }
 
 
-// pub fn form_request_name(_:c_int) -> *const c_char { unsafe { ll:: } }
-// pub fn form_request_by_name(_:*const c_char) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn set_form_win(form: FORM, window: WINDOW) -> FormResult
+{ FormCode::result( unsafe { ll::set_form_win(form, window) } ) }
 
+pub fn form_win(form: FORM) -> Option<WINDOW>
+{ unsafe { ll::form_win(form).as_mut().map(|x| x as WINDOW) } }
 
-// pub fn set_form_win(_:FORM, _:WINDOW) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn form_win(_:FORM) -> WINDOW { unsafe { ll:: } }
-// pub fn set_form_sub(_:FORM, _:WINDOW) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn form_sub(_:FORM) -> WINDOW { unsafe { ll:: } }
-// pub fn scale_form(_:FORM, _:*mut c_int, _:*mut c_int) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn set_form_sub(form: FORM, window: WINDOW) -> FormResult
+{ FormCode::result( unsafe { ll::set_form_sub(form, window) } ) }
 
+pub fn form_sub(form: FORM) -> Option<WINDOW>
+{ unsafe { ll::form_sub(form).as_mut().map(|x| x as WINDOW) } }
 
-// pub fn new_field(_:c_int, _:c_int, _:c_int, _:c_int, _:c_int, _:c_int) -> FIELD { unsafe { ll:: } }
-// pub fn dup_field(_:FIELD, _:c_int, _:c_int) -> FIELD { unsafe { ll:: } }
-// pub fn link_field(_:FIELD, _:c_int, _:c_int) -> FIELD { unsafe { ll:: } }
-// pub fn free_field(_:FIELD) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn scale_form(form: FORM, rows: &mut i32, cols: &mut i32) -> FormResult
+{ FormCode::result( unsafe { ll::scale_form(form, rows as *mut c_int, cols as *mut c_int) } ) }
 
 
 // // TODO
@@ -379,70 +366,30 @@ pub fn form_driver(form: FORM, _:c_int) -> FormResult { FormCode::result( unsafe
 // //                           FIELDTYPE *type2) { unsafe { ll:: } }
 
 
-// pub fn new_form(_:*mut FIELD) -> FORM { unsafe { ll:: } }
-// pub fn free_form(_:FORM) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn new_form(fields: &mut Vec<FIELD>) -> Option<FORM> {
+    fields.push(ptr::null_mut());
+    let form = unsafe { ll::new_form(fields.as_mut_ptr()).as_mut().map(|x| x as FORM) };
+    fields.pop();
+    form
+}
+
+pub fn free_form(form: FORM) -> FormResult
+{ FormCode::result( unsafe { ll::free_form(form) } ) }
 
 
-// pub fn set_new_page(_:FIELD, _:c_bool) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn new_page(_:FIELD) -> c_bool { unsafe { ll:: } }
+pub fn set_new_page(field: FIELD, new_page_flag: bool) -> FormResult
+{ FormCode::result( unsafe { ll::set_new_page(field, if new_page_flag { 1 } else { 0 }) } ) }
+
+pub fn new_page(field: FIELD) -> bool
+{ unsafe { if ll::new_page(field) == 1 { true } else { false } } }
 
 
-// pub fn pos_form_cursor(_:FORM) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn pos_form_cursor(form: FORM) -> FormResult
+{ FormCode::result( unsafe { ll::pos_form_cursor(form) } ) }
 
 
-// pub fn post_form(_:FORM) -> FormResult { FormCode::result( unsafe { ll:: } ) }
-// pub fn unpost_form(_:FORM) -> FormResult { FormCode::result( unsafe { ll:: } ) }
+pub fn post_form(form: FORM) -> FormResult
+{ FormCode::result( unsafe { ll::post_form(form) } ) }
 
-
-
-// #[cfg(feature="panel")]
-// pub fn panel_window(panel: PANEL) -> WINDOW
-// { unsafe { ll::panel_window(panel) } }
-
-// #[cfg(feature="panel")]
-// pub fn update_panels()
-// { unsafe { ll::update_panels() { unsafe { ll:: } } } }
-
-// #[cfg(feature="panel")]
-// pub fn hide_panel(panel: PANEL) -> i32
-// { unsafe { ll::hide_panel(panel) } }
-
-// #[cfg(feature="panel")]
-// pub fn show_panel(panel: PANEL) -> i32
-// { unsafe { ll::show_panel(panel) } }
-
-// #[cfg(feature="panel")]
-// pub fn del_panel(panel: PANEL) -> i32
-// { unsafe { ll::del_panel(panel) } }
-
-// #[cfg(feature="panel")]
-// pub fn top_panel(panel: PANEL) -> i32
-// { unsafe { ll::top_panel(panel) } }
-
-// #[cfg(feature="panel")]
-// pub fn bottom_panel(panel: PANEL) -> i32
-// { unsafe { ll::bottom_panel(panel) } }
-
-// #[cfg(feature="panel")]
-// pub fn new_panel(window: WINDOW) -> PANEL
-// { unsafe { ll::new_panel(window) } }
-
-// #[cfg(feature="panel")]
-// pub fn panel_above(panel: PANEL) -> PANEL
-// { unsafe { ll::panel_above(panel) } }
-
-// #[cfg(feature="panel")]
-// pub fn panel_below(panel: PANEL) -> PANEL
-// { unsafe { ll::panel_below(panel) } }
-
-// #[cfg(feature="panel")]
-// pub fn move_panel(panel: PANEL, y: i32, x: i32) -> i32
-// { unsafe { ll::move_panel(panel, y, x) } }
-
-// #[cfg(feature="panel")]
-// pub fn replace_panel(panel: PANEL, window: WINDOW) -> i32
-// { unsafe { ll::replace_panel(panel, window) } }
-
-// #[cfg(feature="panel")]
-// pub fn panel_hidden(panel: PANEL) -> bool
-// { unsafe { ll::panel_hidden(panel) != 0 } }
+pub fn unpost_form(form: FORM) -> FormResult
+{ FormCode::result( unsafe { ll::unpost_form(form) } ) }
