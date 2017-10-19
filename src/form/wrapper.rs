@@ -214,8 +214,7 @@ pub fn field_info(field: FIELD) -> Result<(i32, i32, i32, i32, i32, i32), FormCo
     }
 }
 
-pub fn dynamic_field_info(field: FIELD) -> Result<(i32, i32, i32), FormCode>
-{
+pub fn dynamic_field_info(field: FIELD) -> Result<(i32, i32, i32), FormCode> {
     let (mut rows, mut cols, mut max): (i32, i32, i32) = (0, 0, 0);
     let result = FormResult::from_value( unsafe { ll::dynamic_field_info(field, &mut rows as *mut c_int,
                                                                          &mut cols as *mut c_int, &mut max as *mut c_int) } );
@@ -353,8 +352,14 @@ pub fn set_form_sub(form: FORM, window: WINDOW) -> FormResult
 pub fn form_sub(form: FORM) -> Option<WINDOW>
 { unsafe { ll::form_sub(form).as_mut().map(|x| x as WINDOW) } }
 
-pub fn scale_form(form: FORM, rows: &mut i32, cols: &mut i32) -> FormResult
-{ FormResult::from_value( unsafe { ll::scale_form(form, rows as *mut c_int, cols as *mut c_int) } ) }
+pub fn scale_form(form: FORM) -> Result<(i32, i32), FormCode> {
+    let (mut rows, mut cols): (i32, i32) = (0, 0);
+    let result = FormResult::from_value( unsafe { ll::scale_form(form, &mut rows as *mut c_int, &mut cols as *mut c_int) } );
+    match result {
+        Ok(_) => Ok((rows, cols)),
+        Err(x) => Err(x)
+    }
+}
 
 
 // // TODO
