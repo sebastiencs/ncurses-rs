@@ -202,15 +202,28 @@ pub fn free_field(field: FIELD) -> FormResult
 { FormResult::from_value( unsafe { ll::free_field(field) } ) }
 
 
-pub fn field_info(field: FIELD, rows: &mut i32, cols: &mut i32,
-                  frow: &mut i32, fcol: &mut i32, nrow: &mut i32, nbuf:&mut i32) -> FormResult
-{ FormResult::from_value( unsafe { ll::field_info(field, rows as *mut c_int,
-                                            cols as *mut c_int, frow as *mut c_int,
-                                            fcol as *mut c_int, nrow as *mut c_int,
-                                            nbuf as *mut c_int) } ) }
+pub fn field_info(field: FIELD) -> Result<(i32, i32, i32, i32, i32, i32), FormCode> {
+    let (rows, cols, frow, fcol, nrow, nbuf): (i32, i32, i32, i32, i32, i32) = (0, 0, 0, 0, 0, 0);
+    let result = FormResult::from_value( unsafe { ll::field_info(field, rows as *mut c_int,
+                                                              cols as *mut c_int, frow as *mut c_int,
+                                                              fcol as *mut c_int, nrow as *mut c_int,
+                                                              nbuf as *mut c_int) } );
+    match result {
+        Ok(_) => Ok((rows, cols, frow, fcol, nrow, nbuf)),
+        Err(x) => Err(x)
+    }
+}
 
-pub fn dynamic_field_info(field: FIELD, rows: &mut i32, cols: &mut i32, max: &mut i32) -> FormResult
-{ FormResult::from_value( unsafe { ll::dynamic_field_info(field, rows as *mut c_int, cols as *mut c_int, max as *mut c_int) } ) }
+pub fn dynamic_field_info(field: FIELD) -> Result<(i32, i32, i32), FormCode>
+{
+    let (rows, cols, max): (i32, i32, i32) = (0, 0, 0);
+    let result = FormResult::from_value( unsafe { ll::dynamic_field_info(field, rows as *mut c_int,
+                                                                         cols as *mut c_int, max as *mut c_int) } );
+    match result {
+        Ok(_) => Ok((rows, cols, max)),
+        Err(x) => Err(x)
+    }
+}
 
 
 // // pub fn int set_field_type(FIELD *field, FIELDTYPE *type, ...) { unsafe { ll:: } } TODO
