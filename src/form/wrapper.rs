@@ -203,11 +203,11 @@ pub fn free_field(field: FIELD) -> FormResult
 
 
 pub fn field_info(field: FIELD) -> Result<(i32, i32, i32, i32, i32, i32), FormCode> {
-    let (rows, cols, frow, fcol, nrow, nbuf): (i32, i32, i32, i32, i32, i32) = (0, 0, 0, 0, 0, 0);
-    let result = FormResult::from_value( unsafe { ll::field_info(field, rows as *mut c_int,
-                                                              cols as *mut c_int, frow as *mut c_int,
-                                                              fcol as *mut c_int, nrow as *mut c_int,
-                                                              nbuf as *mut c_int) } );
+    let (mut rows,mut cols,mut frow,mut fcol,mut nrow,mut nbuf): (i32, i32, i32, i32, i32, i32) = (0, 0, 0, 0, 0, 0);
+    let result = FormResult::from_value( unsafe { ll::field_info(field, &mut rows as *mut c_int,
+                                                                 &mut cols as *mut c_int, &mut frow as *mut c_int,
+                                                                 &mut fcol as *mut c_int, &mut nrow as *mut c_int,
+                                                                 &mut nbuf as *mut c_int) } );
     match result {
         Ok(_) => Ok((rows, cols, frow, fcol, nrow, nbuf)),
         Err(x) => Err(x)
@@ -216,9 +216,9 @@ pub fn field_info(field: FIELD) -> Result<(i32, i32, i32, i32, i32, i32), FormCo
 
 pub fn dynamic_field_info(field: FIELD) -> Result<(i32, i32, i32), FormCode>
 {
-    let (rows, cols, max): (i32, i32, i32) = (0, 0, 0);
-    let result = FormResult::from_value( unsafe { ll::dynamic_field_info(field, rows as *mut c_int,
-                                                                         cols as *mut c_int, max as *mut c_int) } );
+    let (mut rows, mut cols, mut max): (i32, i32, i32) = (0, 0, 0);
+    let result = FormResult::from_value( unsafe { ll::dynamic_field_info(field, &mut rows as *mut c_int,
+                                                                         &mut cols as *mut c_int, &mut max as *mut c_int) } );
     match result {
         Ok(_) => Ok((rows, cols, max)),
         Err(x) => Err(x)
