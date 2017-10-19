@@ -111,22 +111,22 @@ impl From<c_int> for Justification {
 
 #[derive(Debug, Copy, Clone)]
 pub enum FormCode {
-    Ok = 0,
-    SystemError = -1,
-    BadArgument = -2,
-    Posted = -3,
-    Connected = -4,
-    BadState = -5,
-    NoRoom = -6,
-    NotPosted = -7,
-    UnknownCommand = -8,
-    NoMatch = -9,
-    NotSelectable = -10,
-    NotConnected = -11,
-    RequestDenied = -12,
-    InvalidField = -13,
-    Current = -14,
-    Unknown = -15
+    Ok,
+    SystemError,
+    BadArgument,
+    Posted,
+    Connected,
+    BadState,
+    NoRoom,
+    NotPosted,
+    UnknownCommand,
+    NoMatch,
+    NotSelectable,
+    NotConnected,
+    RequestDenied,
+    InvalidField,
+    Current,
+    Unknown,
 }
 
 pub type FormResult = Result<i32, FormCode>;
