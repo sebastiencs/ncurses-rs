@@ -9,7 +9,7 @@ pub type FIELD = *mut i8;
 pub type FIELDTYPE = *mut i8;
 pub type FieldOptions = c_int;
 
-//#[cfg(feature="form")] #[link(name="form")]
+#[cfg(feature="form")] #[link(name="form")]
 extern {
     pub fn set_current_field(_:FORM, _:FIELD) -> c_int;
     pub fn current_field(_:FORM) -> FIELD;
