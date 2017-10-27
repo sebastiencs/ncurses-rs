@@ -163,45 +163,58 @@ impl FromForm for FormResult {
 }
 
 
+#[cfg(feature="form")]
 pub fn set_current_field(form: FORM, field: FIELD) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_current_field(form, field) } ) }
 
+#[cfg(feature="form")]
 pub fn current_field(form: FORM) -> Option<FIELD>
 { unsafe { super::ll::current_field(form).as_mut().map(|x| {x as FIELD}) } }
 
+#[cfg(feature="form")]
 pub fn unfocus_current_field(form: FORM) -> FormResult
 { FormResult::from_value( unsafe { super::ll::unfocus_current_field(form) } ) }
 
+#[cfg(feature="form")]
 pub fn set_form_page(form: FORM, n: i32) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_form_page(form, n) } ) }
 
+#[cfg(feature="form")]
 pub fn form_page(form: FORM) -> i32
 { unsafe { super::ll::form_page(form) } }
 
+#[cfg(feature="form")]
 pub fn field_index(field: FIELD) -> i32
 { unsafe { super::ll::field_index(field) } }
 
 
+#[cfg(feature="form")]
 pub fn data_ahead(form: FORM) -> bool
 { if unsafe { super::ll::data_ahead(form) } == 1 { true } else { false } }
 
+#[cfg(feature="form")]
 pub fn data_behind(form: FORM) -> bool
 { if unsafe { super::ll::data_behind(form) } == 1 { true } else { false } }
 
 
+#[cfg(feature="form")]
 pub fn new_field(height: i32, width: i32, toprow: i32, leftcol: i32, offscreen: i32, nbuffers: i32) -> Option<FIELD>
 { unsafe { super::ll::new_field(height, width, toprow, leftcol, offscreen, nbuffers).as_mut().map(|x| {x as FIELD}) } }
 
+#[cfg(feature="form")]
 pub fn dup_field(field: FIELD, toprow: i32, leftcol: i32) -> Option<FIELD>
 { unsafe { super::ll::dup_field(field, toprow, leftcol).as_mut().map(|x| {x as FIELD}) } }
 
+#[cfg(feature="form")]
 pub fn link_field(field: FIELD, toprow: i32, leftcol: i32) -> Option<FIELD>
 { unsafe { super::ll::link_field(field, toprow, leftcol).as_mut().map(|x| {x as FIELD}) } }
 
+#[cfg(feature="form")]
 pub fn free_field(field: FIELD) -> FormResult
 { FormResult::from_value( unsafe { super::ll::free_field(field) } ) }
 
 
+#[cfg(feature="form")]
 pub fn field_info(field: FIELD) -> Result<(i32, i32, i32, i32, i32, i32), FormCode> {
     let (mut rows,mut cols,mut frow,mut fcol,mut nrow,mut nbuf): (i32, i32, i32, i32, i32, i32) = (0, 0, 0, 0, 0, 0);
     let result = FormResult::from_value( unsafe { super::ll::field_info(field, &mut rows as *mut c_int,
@@ -214,6 +227,7 @@ pub fn field_info(field: FIELD) -> Result<(i32, i32, i32, i32, i32, i32), FormCo
     }
 }
 
+#[cfg(feature="form")]
 pub fn dynamic_field_info(field: FIELD) -> Result<(i32, i32, i32), FormCode> {
     let (mut rows, mut cols, mut max): (i32, i32, i32) = (0, 0, 0);
     let result = FormResult::from_value( unsafe { super::ll::dynamic_field_info(field, &mut rows as *mut c_int,
@@ -230,22 +244,28 @@ pub fn dynamic_field_info(field: FIELD) -> Result<(i32, i32, i32), FormCode> {
 // // pub fn void *field_arg(const FIELD *field) { unsafe { super::ll:: } } TODO
 
 
+#[cfg(feature="form")]
 pub fn set_field_buffer(field: FIELD, buf: i32, value: &str) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_field_buffer(field, buf, value.to_c_str().as_ptr()) } ) }
 
+#[cfg(feature="form")]
 pub fn field_buffer(field: FIELD, buffer: i32) -> String
 { unsafe { FromCStr::from_c_str(super::ll::field_buffer(field, buffer)) } }
 
+#[cfg(feature="form")]
 pub fn set_field_status(field: FIELD, status: bool) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_field_status(field, if status { 1 } else { 0 }) } ) }
 
+#[cfg(feature="form")]
 pub fn field_status(field: FIELD) -> bool
 { unsafe { if super::ll::field_status(field) == 1 { true } else { false } } }
 
+#[cfg(feature="form")]
 pub fn set_max_field(field: FIELD, max: i32) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_max_field(field, max) } ) }
 
 
+#[cfg(feature="form")]
 pub fn set_form_fields(form: FORM, fields: &mut Vec<FIELD>) -> FormResult {
     fields.push(ptr::null_mut());
     let res = unsafe { super::ll::set_form_fields(form, fields.as_mut_ptr()) };
@@ -253,31 +273,40 @@ pub fn set_form_fields(form: FORM, fields: &mut Vec<FIELD>) -> FormResult {
     FormResult::from_value(res)
 }
 
+#[cfg(feature="form")]
 pub fn form_fields(form: FORM) -> Vec<FIELD>
 { unsafe { slice::from_raw_parts(super::ll::form_fields(form), super::ll::field_count(form) as usize).to_vec() } }
 
+#[cfg(feature="form")]
 pub fn field_count(form: FORM) -> i32
 { unsafe { super::ll::field_count(form) } }
 
+#[cfg(feature="form")]
 pub fn move_field(field: FIELD, frow: i32, fcol: i32) -> FormResult
 { FormResult::from_value( unsafe { super::ll::move_field(field, frow, fcol) } ) }
 
 
+#[cfg(feature="form")]
 pub fn set_field_fore(field: FIELD, attr: chtype) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_field_fore(field, attr) } ) }
 
+#[cfg(feature="form")]
 pub fn field_fore(field: FIELD) -> chtype
 { unsafe { super::ll::field_fore(field) } }
 
+#[cfg(feature="form")]
 pub fn set_field_back(field: FIELD, attr: chtype) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_field_back(field, attr) } ) }
 
+#[cfg(feature="form")]
 pub fn field_back(field: FIELD) -> chtype
 { unsafe { super::ll::field_back(field) } }
 
+#[cfg(feature="form")]
 pub fn set_field_pad(field: FIELD, pad: i32) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_field_pad(field, pad) } ) }
 
+#[cfg(feature="form")]
 pub fn field_pad(field: FIELD) -> i32
 { unsafe { super::ll::field_pad(field) } }
 
@@ -293,65 +322,83 @@ pub fn field_pad(field: FIELD) -> i32
 // // pub fn Form_Hook form_term(const FORM *form) { unsafe { super::ll:: } }
 
 
+#[cfg(feature="form")]
 pub fn set_field_just(field: FIELD, value: Justification) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_field_just(field, value as c_int) } ) }
 //{ FormResult::from_value( unsafe { super::ll::set_field_just(field, Justification::to_int(value)) } ) }
 
+#[cfg(feature="form")]
 pub fn field_just(field: FIELD) -> Justification
 { unsafe { Justification::from(super::ll::field_just(field)) } }
 
 
+#[cfg(feature="form")]
 pub fn set_field_opts(field: FIELD, options: FieldOptions) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_field_opts(field, options) } ) }
 
+#[cfg(feature="form")]
 pub fn field_opts_on(field: FIELD, options: FieldOptions) -> FormResult
 { FormResult::from_value( unsafe { super::ll::field_opts_on(field, options) } ) }
 
+#[cfg(feature="form")]
 pub fn field_opts_off(field: FIELD, options: FieldOptions) -> FormResult
 { FormResult::from_value( unsafe { super::ll::field_opts_off(field, options) } ) }
 
+#[cfg(feature="form")]
 pub fn field_opts(field: FIELD) -> FieldOptions
 { unsafe { super::ll::field_opts(field) } }
 
 
 // TODO: improve the parameter type
+#[cfg(feature="form")]
 pub fn form_driver(form: FORM, c: i32) -> FormResult
 { FormResult::from_value( unsafe { super::ll::form_driver(form, c) } ) }
 
 // // pub fn form_driver_w(_:FORM, _:c_int, wchar_t wch) -> FormResult { FormResult::from_value( unsafe { super::ll:: } ) } TODO wchar ?
 
 
+#[cfg(feature="form")]
 pub fn set_form_opts(form: FORM, options: FieldOptions) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_form_opts(form, options) } ) }
 
+#[cfg(feature="form")]
 pub fn form_opts_on(form: FORM, options: FieldOptions) -> FormResult
 { FormResult::from_value( unsafe { super::ll::form_opts_on(form, options) } ) }
 
+#[cfg(feature="form")]
 pub fn form_opts_off(form: FORM, options: FieldOptions) -> FormResult
 { FormResult::from_value( unsafe { super::ll::form_opts_off(form, options) } ) }
 
+#[cfg(feature="form")]
 pub fn form_opts(form: FORM) -> FieldOptions
 { unsafe { super::ll::form_opts(form) } }
 
+#[cfg(feature="form")]
 pub fn form_request_name(request: i32) -> String
 { unsafe { FromCStr::from_c_str(super::ll::form_request_name(request))} }
 
+#[cfg(feature="form")]
 pub fn form_request_by_name(name: &str) -> FormResult
 { FormResult::from_value( unsafe { super::ll::form_request_by_name(name.to_c_str().as_ptr()) } ) }
 
 
+#[cfg(feature="form")]
 pub fn set_form_win(form: FORM, window: WINDOW) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_form_win(form, window) } ) }
 
+#[cfg(feature="form")]
 pub fn form_win(form: FORM) -> Option<WINDOW>
 { unsafe { super::ll::form_win(form).as_mut().map(|x| x as WINDOW) } }
 
+#[cfg(feature="form")]
 pub fn set_form_sub(form: FORM, window: WINDOW) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_form_sub(form, window) } ) }
 
+#[cfg(feature="form")]
 pub fn form_sub(form: FORM) -> Option<WINDOW>
 { unsafe { super::ll::form_sub(form).as_mut().map(|x| x as WINDOW) } }
 
+#[cfg(feature="form")]
 pub fn scale_form(form: FORM) -> Result<(i32, i32), FormCode> {
     let (mut rows, mut cols): (i32, i32) = (0, 0);
     let result = FormResult::from_value( unsafe { super::ll::scale_form(form, &mut rows as *mut c_int, &mut cols as *mut c_int) } );
@@ -376,6 +423,7 @@ pub fn scale_form(form: FORM) -> Result<(i32, i32), FormCode> {
 // //                           FIELDTYPE *type2) { unsafe { super::ll:: } }
 
 
+#[cfg(feature="form")]
 pub fn new_form(fields: &mut Vec<FIELD>) -> Option<FORM> {
     fields.push(ptr::null_mut());
     let form = unsafe { super::ll::new_form(fields.as_mut_ptr()).as_mut().map(|x| x as FORM) };
@@ -383,23 +431,29 @@ pub fn new_form(fields: &mut Vec<FIELD>) -> Option<FORM> {
     form
 }
 
+#[cfg(feature="form")]
 pub fn free_form(form: FORM) -> FormResult
 { FormResult::from_value( unsafe { super::ll::free_form(form) } ) }
 
 
+#[cfg(feature="form")]
 pub fn set_new_page(field: FIELD, new_page_flag: bool) -> FormResult
 { FormResult::from_value( unsafe { super::ll::set_new_page(field, if new_page_flag { 1 } else { 0 }) } ) }
 
+#[cfg(feature="form")]
 pub fn new_page(field: FIELD) -> bool
 { unsafe { if super::ll::new_page(field) == 1 { true } else { false } } }
 
 
+#[cfg(feature="form")]
 pub fn pos_form_cursor(form: FORM) -> FormResult
 { FormResult::from_value( unsafe { super::ll::pos_form_cursor(form) } ) }
 
 
+#[cfg(feature="form")]
 pub fn post_form(form: FORM) -> FormResult
 { FormResult::from_value( unsafe { super::ll::post_form(form) } ) }
 
+#[cfg(feature="form")]
 pub fn unpost_form(form: FORM) -> FormResult
 { FormResult::from_value( unsafe { super::ll::unpost_form(form) } ) }
